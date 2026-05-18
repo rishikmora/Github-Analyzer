@@ -1,0 +1,63 @@
+# ─────────────────────────────────────────────────────────────
+#  DevIQ — .gitignore
+# ─────────────────────────────────────────────────────────────
+
+# Environment Variables — NEVER commit these
+.env
+
+# API Config — contains your Anthropic key
+js/config.js
+.env.local
+.env.development
+.env.production
+*.env
+
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build output
+dist/
+build/
+out/
+.next/
+.nuxt/
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+desktop.ini
+
+# Editor directories
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Cache
+.cache/
+.parcel-cache/
+.eslintcache
+
+# Coverage
+coverage/
+*.lcov
+.nyc_output/
+
+# Misc
+*.pem
+*.key
+*.cert

@@ -1,0 +1,19 @@
+{
+  "name": "deviq",
+  "version": "2.0.0",
+  "description": "AI-powered GitHub developer intelligence platform with 7 specialized agents",
+  "main": "server/proxy.js",
+  "scripts": {
+    "start":   "node server/proxy.js",
+    "dev":     "node --watch server/proxy.js",
+    "serve":   "npx serve . -p 8080"
+  },
+  "keywords": ["github", "ai", "developer-tools", "anthropic", "claude", "portfolio"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "cors":    "^2.8.5",
+    "dotenv":  "^16.4.5",
+    "express": "^4.19.2"
+  }
+}

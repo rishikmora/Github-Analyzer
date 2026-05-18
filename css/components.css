@@ -1,0 +1,221 @@
+/* ═══════════════════════════════════════════════════════════════
+   DevIQ — components.css
+   Terminal · Cards · Tabs · Profile Hero · Toast · Error
+═══════════════════════════════════════════════════════════════ */
+
+/* ── Terminal ───────────────────────────────────────────────── */
+.terminal {
+  background: var(--cosmos);
+  border: 1px solid var(--b2);
+  border-radius: var(--r3);
+  overflow: hidden;
+  margin-bottom: 2rem;
+  display: none;
+}
+.terminal.visible { display: block; animation: slideIn 0.3s ease; }
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: none; }
+}
+.terminal-bar {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 16px;
+  background: var(--nebula);
+  border-bottom: 1px solid var(--b1);
+}
+.terminal-dot  { width: 10px; height: 10px; border-radius: 50%; }
+.terminal-title {
+  font-family: var(--font-mono); font-size: 10px;
+  color: var(--t3); margin-left: 8px;
+}
+.terminal-body {
+  padding: 1.25rem 1.5rem;
+  font-family: var(--font-mono); font-size: 12px;
+  min-height: 120px; max-height: 260px; overflow-y: auto;
+}
+.terminal-line {
+  display: flex; gap: 10px; align-items: flex-start;
+  margin-bottom: 6px; animation: termLine 0.2s ease;
+}
+@keyframes termLine {
+  from { opacity: 0; transform: translateX(-4px); }
+  to   { opacity: 1; transform: none; }
+}
+.term-prefix  { color: var(--t3); flex-shrink: 0; user-select: none; }
+.term-agent   { font-weight: 500; }
+.term-text    { color: var(--t2); flex: 1; line-height: 1.5; }
+.term-ok      { color: var(--pulse); }
+.term-run     { color: var(--electric-l); }
+.term-warn    { color: var(--nova); }
+.term-cursor  {
+  display: inline-block; width: 8px; height: 13px;
+  background: var(--electric-l);
+  animation: cursor 0.8s infinite;
+  vertical-align: middle; margin-left: 2px; border-radius: 1px;
+}
+@keyframes cursor {
+  0%,100% { opacity: 1; }
+  50%      { opacity: 0; }
+}
+.term-progress { margin-top: 1rem; height: 2px; background: var(--b1); border-radius: 1px; overflow: hidden; }
+.term-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--electric), var(--plasma));
+  border-radius: 1px;
+  transition: width 0.5s ease;
+  width: 0%;
+}
+
+/* ── Agent Grid ─────────────────────────────────────────────── */
+.agent-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; margin-top: 1rem; }
+.agent-card {
+  background: var(--nebula); border: 1px solid var(--b1);
+  border-radius: var(--r2); padding: 10px 12px;
+  transition: border-color 0.3s, background 0.3s;
+}
+.agent-card.running { border-color: rgba(99,102,241,0.4);   background: rgba(99,102,241,0.05); }
+.agent-card.done    { border-color: rgba(16,185,129,0.3);   background: rgba(16,185,129,0.05); }
+.agent-card.pending { opacity: 0.4; }
+.agent-card-name   { font-family: var(--font-mono); font-size: 10px; color: var(--t3); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.1em; }
+.agent-card-status { font-size: 11px; display: flex; align-items: center; gap: 5px; }
+.agent-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.agent-dot.pending { background: var(--t4); }
+.agent-dot.running { background: var(--electric-l); animation: blink 0.7s infinite; }
+.agent-dot.done    { background: var(--pulse); }
+
+/* ── Error Panel ────────────────────────────────────────────── */
+.error-panel {
+  background: rgba(244,63,94,0.08);
+  border: 1px solid rgba(244,63,94,0.2);
+  border-radius: var(--r2); padding: 1rem 1.25rem;
+  color: #fb7185; font-size: 13px; font-family: var(--font-mono);
+  display: none; margin-bottom: 1rem;
+}
+.error-panel.visible { display: block; }
+
+/* ── Results ────────────────────────────────────────────────── */
+#results { display: none; }
+#results.visible { display: block; }
+
+/* ── Profile Hero Card ──────────────────────────────────────── */
+.profile-hero {
+  position: relative; overflow: hidden;
+  background: linear-gradient(135deg, var(--cosmos) 0%, var(--nebula) 100%);
+  border: 1px solid var(--b2); border-radius: var(--r4);
+  padding: 2rem; margin-bottom: 1.5rem;
+}
+.profile-hero::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--electric), var(--plasma), transparent);
+}
+.profile-hero-inner { display: flex; gap: 1.5rem; align-items: flex-start; flex-wrap: wrap; }
+.profile-avatar-wrap { position: relative; flex-shrink: 0; }
+.profile-avatar    { width: 80px; height: 80px; border-radius: 50%; border: 2px solid var(--b3); display: block; }
+.profile-avatar-ring {
+  position: absolute; inset: -4px; border-radius: 50%;
+  border: 1px solid transparent;
+  background: linear-gradient(var(--cosmos), var(--cosmos)) padding-box,
+              linear-gradient(135deg, var(--electric), var(--plasma)) border-box;
+}
+.profile-main      { flex: 1; min-width: 200px; }
+.profile-name      { font-family: var(--font-display); font-size: 1.8rem; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 2px; }
+.profile-handle    { font-family: var(--font-mono); font-size: 12px; color: var(--t3); margin-bottom: 8px; }
+.profile-bio       { font-size: 13px; color: var(--t2); line-height: 1.6; margin-bottom: 12px; max-width: 500px; }
+.profile-stats     { display: flex; gap: 1.5rem; flex-wrap: wrap; }
+.pstat             { display: flex; flex-direction: column; gap: 2px; }
+.pstat-num         { font-family: var(--font-display); font-size: 1.3rem; font-weight: 600; }
+.pstat-lbl         { font-family: var(--font-mono); font-size: 10px; color: var(--t3); text-transform: uppercase; letter-spacing: 0.1em; }
+.tech-strip        { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 12px; }
+.tech-chip         { padding: 3px 10px; border-radius: 4px; font-family: var(--font-mono); font-size: 10px; border: 1px solid; letter-spacing: 0.05em; }
+.score-column      { display: flex; flex-direction: column; gap: 8px; flex-shrink: 0; }
+.score-badge       { background: var(--galaxy); border: 1px solid var(--b2); border-radius: var(--r2); padding: 14px 18px; text-align: center; min-width: 100px; }
+.score-badge-val   { font-family: var(--font-display); font-size: 2.2rem; font-weight: 700; line-height: 1; }
+.score-badge-lbl   { font-family: var(--font-mono); font-size: 9px; color: var(--t3); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.15em; }
+.score-badge-sub   { font-size: 10px; color: var(--t2); margin-top: 3px; }
+.readiness-badge   { padding: 6px 12px; border-radius: 20px; font-family: var(--font-mono); font-size: 10px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; display: inline-block; margin-top: 6px; }
+
+/* ── Tabs ───────────────────────────────────────────────────── */
+.tabs-wrap {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(4,4,10,0.85); backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--b1); margin-bottom: 1.5rem;
+}
+.tabs { display: flex; overflow-x: auto; }
+.tab-btn {
+  padding: 14px 20px;
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--t3); background: transparent; border: none; cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: color 0.2s, border-color 0.2s;
+  white-space: nowrap;
+  display: flex; align-items: center; gap: 6px;
+}
+.tab-btn:hover { color: var(--t2); }
+.tab-btn.active { color: var(--electric-l); border-bottom-color: var(--electric); }
+.tab-btn i { font-size: 14px; }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; animation: fadeUp 0.25s ease; }
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ── Section Header ─────────────────────────────────────────── */
+.section-hdr { display: flex; align-items: center; gap: 12px; margin: 1.75rem 0 1rem; }
+.section-hdr h3 { font-family: var(--font-display); font-size: 14px; font-weight: 600; color: var(--t1); letter-spacing: 0.01em; white-space: nowrap; }
+.section-hdr-line  { flex: 1; height: 1px; background: var(--b1); }
+.section-hdr-badge {
+  font-family: var(--font-mono); font-size: 9px;
+  padding: 3px 8px; border-radius: 10px;
+  background: var(--nebula); border: 1px solid var(--b1);
+  color: var(--t3); white-space: nowrap; letter-spacing: 0.1em; text-transform: uppercase;
+}
+
+/* ── Card ───────────────────────────────────────────────────── */
+.card {
+  background: var(--cosmos);
+  border: 1px solid var(--b1);
+  border-radius: var(--r3);
+  padding: 1.25rem;
+  transition: border-color 0.2s;
+}
+.card:hover { border-color: var(--b2); }
+.card-hdr {
+  font-family: var(--font-mono); font-size: 10px;
+  text-transform: uppercase; letter-spacing: 0.15em;
+  color: var(--t3); margin-bottom: 1rem;
+  display: flex; align-items: center; gap: 6px;
+}
+.card-hdr i { font-size: 13px; color: var(--electric-l); }
+
+/* ── Metric Tile ────────────────────────────────────────────── */
+.metric-tile {
+  background: var(--nebula); border: 1px solid var(--b1);
+  border-radius: var(--r2); padding: 1rem; text-align: center;
+}
+.metric-val { font-family: var(--font-display); font-size: 2rem; font-weight: 700; line-height: 1; margin-bottom: 4px; }
+.metric-lbl { font-family: var(--font-mono); font-size: 9px; color: var(--t3); text-transform: uppercase; letter-spacing: 0.12em; }
+.metric-sub { font-size: 10px; color: var(--t2); margin-top: 4px; }
+
+/* ── Skill Bar ──────────────────────────────────────────────── */
+.skill-row-wrap   { margin-bottom: 10px; }
+.skill-row-hdr    { display: flex; justify-content: space-between; margin-bottom: 5px; }
+.skill-row-name   { font-size: 12px; color: var(--t2); }
+.skill-row-val    { font-family: var(--font-mono); font-size: 11px; color: var(--t1); }
+.bar-track        { height: 4px; background: var(--b1); border-radius: 2px; overflow: hidden; }
+.bar-fill         { height: 100%; border-radius: 2px; transition: width 1.3s cubic-bezier(0.34, 1.56, 0.64, 1); width: 0; }
+
+/* ── Radar Chart ────────────────────────────────────────────── */
+.radar-wrap { position: relative; width: 100%; padding-bottom: 85%; }
+.radar-wrap canvas { position: absolute; top: 0; left: 0; width: 100%!important; height: 100%!important; }
+
+/* ── Toast ──────────────────────────────────────────────────── */
+#toast {
+  position: fixed; bottom: 24px; right: 24px; z-index: 9999;
+  background: var(--nebula); border: 1px solid var(--electric);
+  border-radius: var(--r2); padding: 10px 18px;
+  font-family: var(--font-mono); font-size: 11px; color: var(--electric-l);
+  opacity: 0; transition: opacity 0.25s; pointer-events: none;
+  box-shadow: 0 0 20px rgba(99,102,241,0.2);
+}
+#toast.show { opacity: 1; }

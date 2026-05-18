@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <meta name="description" content="DevIQ — AI-powered GitHub developer intelligence platform with 7 specialized agents"/>
+  <meta name="theme-color" content="#04040a"/>
+  <title>DevIQ — GitHub Developer Intelligence</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,700;1,400&family=Clash+Display:wght@400;500;600;700&family=Satoshi:wght@300;400;500;700&display=swap" rel="stylesheet"/>
+
+  <!-- Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
+
+  <!-- Chart.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js" defer></script>
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/base.css"/>
+  <link rel="stylesheet" href="css/components.css"/>
+  <link rel="stylesheet" href="css/panels.css"/>
+</head>
+<body>
+
+  <!-- ── Background ─────────────────────────────────────────── -->
+  <div class="bg-grid" aria-hidden="true"></div>
+  <div class="bg-orb bg-orb-1" aria-hidden="true"></div>
+  <div class="bg-orb bg-orb-2" aria-hidden="true"></div>
+  <div class="bg-orb bg-orb-3" aria-hidden="true"></div>
+
+  <div id="root">
+
+    <!-- ── Hero ───────────────────────────────────────────── -->
+    <section class="hero">
+      <div class="hero-eyebrow">
+        <i class="ti ti-cpu"></i> Multi-Agent AI Platform
+      </div>
+      <h1>
+        <span class="line1">Developer</span>
+        <span class="line2">Intelligence</span>
+      </h1>
+      <p class="hero-sub">
+        7-agent AI system that decodes your GitHub DNA — architecture, security,
+        career trajectory, and engineering maturity. In seconds.
+      </p>
+
+      <div class="search-wrap">
+        <div class="search-box">
+          <div class="search-prefix"><i class="ti ti-brand-github"></i>&nbsp;github.com/</div>
+          <input class="search-input" id="ghInput" type="text"
+                 placeholder="username" autocomplete="off" spellcheck="false"/>
+          <button class="analyze-btn" id="analyzeBtn">
+            <i class="ti ti-bolt"></i> Analyze
+          </button>
+        </div>
+        <div class="mode-pills">
+          <button class="mode-pill active" data-mode="faang">
+            <span class="dot" style="background:#6366f1"></span>FAANG Recruiter
+          </button>
+          <button class="mode-pill" data-mode="startup">
+            <span class="dot" style="background:#22d3ee"></span>Startup CTO
+          </button>
+          <button class="mode-pill" data-mode="opensource">
+            <span class="dot" style="background:#10b981"></span>OSS Maintainer
+          </button>
+          <button class="mode-pill" data-mode="ml">
+            <span class="dot" style="background:#f59e0b"></span>ML Hiring Manager
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Terminal ───────────────────────────────────────── -->
+    <div class="terminal" id="terminal">
+      <div class="terminal-bar">
+        <div class="terminal-dot" style="background:#ff5f57"></div>
+        <div class="terminal-dot" style="background:#febc2e"></div>
+        <div class="terminal-dot" style="background:#28c840"></div>
+        <span class="terminal-title">deviq — multi-agent analysis pipeline</span>
+      </div>
+      <div class="terminal-body" id="termBody"></div>
+      <div class="term-progress"><div class="term-progress-bar" id="termProgress"></div></div>
+      <div style="padding:1rem 1.5rem">
+        <div class="agent-grid" id="agentGrid"></div>
+      </div>
+    </div>
+
+    <!-- ── Error ──────────────────────────────────────────── -->
+    <div class="error-panel" id="errorPanel"></div>
+
+    <!-- ── Results ────────────────────────────────────────── -->
+    <div id="results">
+      <div id="profileHero"></div>
+
+      <!-- Tabs -->
+      <div class="tabs-wrap">
+        <div class="tabs" role="tablist">
+          <button class="tab-btn active" data-tab="overview"><i class="ti ti-layout-dashboard"></i>Overview</button>
+          <button class="tab-btn" data-tab="agents"><i class="ti ti-robot"></i>AI Agents</button>
+          <button class="tab-btn" data-tab="repos"><i class="ti ti-git-branch"></i>Repositories</button>
+          <button class="tab-btn" data-tab="career"><i class="ti ti-map"></i>Career</button>
+          <button class="tab-btn" data-tab="resume"><i class="ti ti-file-cv"></i>Resume</button>
+          <button class="tab-btn" data-tab="interview"><i class="ti ti-messages"></i>Interview</button>
+          <button class="tab-btn" data-tab="security"><i class="ti ti-shield"></i>Security</button>
+          <button class="tab-btn" data-tab="search"><i class="ti ti-search"></i>Semantic</button>
+        </div>
+      </div>
+
+      <!-- Tab Panels -->
+      <div id="panel-overview" class="tab-panel active"></div>
+      <div id="panel-agents"   class="tab-panel"></div>
+      <div id="panel-repos"    class="tab-panel"></div>
+      <div id="panel-career"   class="tab-panel"></div>
+      <div id="panel-resume"   class="tab-panel"></div>
+      <div id="panel-interview" class="tab-panel"></div>
+      <div id="panel-security" class="tab-panel"></div>
+      <div id="panel-search"   class="tab-panel"></div>
+    </div>
+
+  </div><!-- /root -->
+
+  <!-- Toast -->
+  <div id="toast"></div>
+
+  <!-- Config — YOU fill this, it is gitignored -->
+  <script src="js/config.js"></script>
+
+  <!-- Core modules -->
+  <script src="js/utils.js"></script>
+  <script src="js/github.js"></script>
+  <script src="js/ai.js"></script>
+  <script src="js/enrichment.js"></script>
+  <script src="js/analysis.js"></script>
+  <script src="js/render.js"></script>
+  <script src="js/app.js"></script>
+
+</body>
+</html>
