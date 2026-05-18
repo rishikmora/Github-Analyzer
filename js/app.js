@@ -192,7 +192,7 @@ async function startAnalysis() {
     setProgress(50);
 
     const prompt = buildAnalysisPrompt(user, nonFork, langs, archs, window._deviqMode, enrichment);
-    const { text, provider, model, badge } = await callAI(prompt, 'deep_analysis', 2500);
+    const { text, provider, model, badge } = await callAI(prompt, 'deep_analysis', 4000);
 
     termLine('✓', 'AI', `Analysis complete via ${badge || ''}${model || provider}.`, 'term-ok');
     setProgress(80);
@@ -221,6 +221,17 @@ async function startAnalysis() {
     // Attach enrichment to analysis for render use
     analysis._enrichment = enrichment;
     renderAll(user, nonFork, topRepos, langs, archs, stars, analysis);
+
+    // Save to Supabase (non-blocking, fire and forget)
+    saveAnalysisToSupabase(
+      user, nonFork, langs, archs, analysis,
+      { provider, model }, window._deviqMode
+    ).then(result => {
+      if (result && result.id) {
+        showToast('\u2713 Analysis saved to database');
+        window._deviqLastSavedId = result.id;
+      }
+    });
 
   } catch (err) {
     term.classList.remove('visible');

@@ -207,80 +207,20 @@ function buildAnalysisPrompt(user, repos, langs, archs, mode, enrichment) {
   }
   const enrichCtx = lines.length ? `\n\nENRICHMENT DATA (use to improve score accuracy):\n${lines.join('\n')}` : '';
 
-  return `You are a world-class developer intelligence system running 7 specialized AI agents simultaneously.
-Analyze this GitHub developer and return ONLY valid JSON — no markdown, no backticks, no explanation.
+  return `You are a developer intelligence AI. Analyze this GitHub profile.
+Return ONLY a raw JSON object. No markdown. No backticks. No explanation. Start your response with { and end with }.
 
-PROFILE DATA:
-Username: ${user.login} | Name: ${user.name||'N/A'} | Bio: ${user.bio||'N/A'}
+PROFILE:
+User: ${user.login} | Name: ${user.name||'N/A'} | Bio: ${user.bio||'N/A'}
 Location: ${user.location||'N/A'} | Company: ${user.company||'N/A'}
-Followers: ${user.followers} | Repos: ${user.public_repos} | Created: ${user.created_at}
-Top languages: ${langs.map(l=>l.lang).join(', ')} | Total stars: ${totalStars}
-Detected patterns: ${archs.join(', ')}
-Repositories: ${repoSummary}
-Recruiter mode: ${RECRUITER_CONTEXT[mode]||RECRUITER_CONTEXT.faang}${enrichCtx}
+Followers: ${user.followers} | Public repos: ${user.public_repos} | Joined: ${user.created_at}
+Languages: ${langs.map(l=>l.lang).join(', ')} | Stars: ${totalStars}
+Patterns: ${archs.join(', ')}
+Repos: ${repoSummary}
+Mode: ${RECRUITER_CONTEXT[mode]||RECRUITER_CONTEXT.faang}${enrichCtx}
 
-Return this EXACT JSON schema (all fields required):
-{
-  "engineeringIQ": <int 40-99>,
-  "iqGrade": "<2-4 word level>",
-  "overallScore": <int 1-100>,
-  "productionReadiness": "<Beginner|Portfolio-level|Production-grade|Enterprise-grade>",
-  "architectureScore": <1-100>,
-  "codeQualityScore": <1-100>,
-  "deploymentScore": <1-100>,
-  "communityScore": <1-100>,
-  "documentationScore": <1-100>,
-  "aiReadinessScore": <1-100>,
-  "personalityType": "<3-4 word archetype>",
-  "personalityGlyph": "<single emoji>",
-  "personalityDesc": "<2 sentences>",
-  "architectureSummary": "<3 sentences on architecture quality>",
-  "strengths": ["<strength>","<strength>","<strength>","<strength>"],
-  "weaknesses": ["<gap>","<gap>","<gap>"],
-  "topTechs": ["<tech1>","<tech2>","<tech3>","<tech4>","<tech5>","<tech6>"],
-  "agents": {
-    "recruiter":          { "verdict": "<4 sentences>", "score": <1-100>, "tags": ["<tag>","<tag>","<tag>"] },
-    "architect":          { "verdict": "<3 sentences>", "score": <1-100>, "tags": ["<tag>","<tag>"] },
-    "codeReviewer":       { "verdict": "<3 sentences>", "score": <1-100>, "tags": ["<tag>","<tag>"] },
-    "securityReviewer":   { "verdict": "<3 sentences>", "score": <1-100>, "tags": ["<tag>","<tag>"] },
-    "careerMentor":       { "verdict": "<3 sentences>", "score": <1-100>, "tags": ["<tag>","<tag>"] },
-    "docsReviewer":       { "verdict": "<2 sentences>", "score": <1-100>, "tags": ["<tag>"] },
-    "scalabilityAnalyst": { "verdict": "<3 sentences>", "score": <1-100>, "tags": ["<tag>","<tag>"] }
-  },
-  "resumeBullets": [
-    { "repo": "<name>", "bullet": "<action-verb bullet with metrics>" },
-    { "repo": "<name>", "bullet": "<bullet>" },
-    { "repo": "<name>", "bullet": "<bullet>" },
-    { "repo": "<name>", "bullet": "<bullet>" }
-  ],
-  "interviewQuestions": [
-    { "q": "<question from their stack>", "topic": "<topic>", "difficulty": "easy",   "followUp": "<follow-up>" },
-    { "q": "<question>",                  "topic": "<topic>", "difficulty": "medium", "followUp": "<follow-up>" },
-    { "q": "<question>",                  "topic": "<topic>", "difficulty": "hard",   "followUp": "<follow-up>" },
-    { "q": "<system design question>",    "topic": "System Design", "difficulty": "hard", "followUp": "<follow-up>" }
-  ],
-  "roadmapSteps": [
-    { "title": "<current mastery>",  "desc": "<what they excel at>",       "status": "done"    },
-    { "title": "<immediate action>", "desc": "<concrete step right now>",   "status": "current" },
-    { "title": "<3-month goal>",     "desc": "<3-month target>",            "status": "todo"    },
-    { "title": "<6-month target>",   "desc": "<ambitious 6-month target>",  "status": "todo"    },
-    { "title": "<1-year vision>",    "desc": "<where execution leads>",     "status": "todo"    }
-  ],
-  "securityChecks": [
-    { "title": "<check>", "desc": "<finding>", "status": "<ok|warn|bad>" },
-    { "title": "<check>", "desc": "<finding>", "status": "<ok|warn|bad>" }
-  ],
-  "timelineEvents": [
-    { "year": "<year>", "text": "<milestone>" },
-    { "year": "<year>", "text": "<milestone>" },
-    { "year": "<year>", "text": "<milestone>" },
-    { "year": "<year>", "text": "<current/predicted milestone>" }
-  ],
-  "hiddenGem": "<repo — why impressive but underrated>",
-  "careerPath": "<1 sentence career arc>",
-  "benchmarkPercentile": <int 1-99>,
-  "maturityLevel": "<Junior|Mid-level|Senior|Staff|Principal>",
-  "bestRoleFit": "<specific job title>",
-  "openSourceRecs": ["<OSS project>","<project>","<project>"]
-}`;
+RESPOND WITH THIS JSON (replace every placeholder with real values):
+{"engineeringIQ":75,"iqGrade":"Mid-level Engineer","overallScore":72,"productionReadiness":"Portfolio-level","architectureScore":70,"codeQualityScore":68,"deploymentScore":60,"communityScore":65,"documentationScore":55,"aiReadinessScore":58,"personalityType":"Full-Stack Builder","personalityGlyph":"⚡","personalityDesc":"Two sentences about coding style.","architectureSummary":"Three sentences about architecture.","strengths":["strength one","strength two","strength three","strength four"],"weaknesses":["gap one","gap two","gap three"],"topTechs":["Tech1","Tech2","Tech3","Tech4","Tech5","Tech6"],"agents":{"recruiter":{"verdict":"Four sentences from recruiter.","score":72,"tags":["tag1","tag2","tag3"]},"architect":{"verdict":"Three sentences on architecture.","score":70,"tags":["tag1","tag2"]},"codeReviewer":{"verdict":"Three sentences on code quality.","score":68,"tags":["tag1","tag2"]},"securityReviewer":{"verdict":"Three sentences on security.","score":65,"tags":["tag1","tag2"]},"careerMentor":{"verdict":"Three sentences on career.","score":74,"tags":["tag1","tag2"]},"docsReviewer":{"verdict":"Two sentences on docs.","score":55,"tags":["tag1"]},"scalabilityAnalyst":{"verdict":"Three sentences on scaling.","score":62,"tags":["tag1","tag2"]}},"resumeBullets":[{"repo":"repo-name","bullet":"Strong action verb bullet with impact metric."},{"repo":"repo-name","bullet":"Strong action verb bullet."},{"repo":"repo-name","bullet":"Strong action verb bullet."},{"repo":"repo-name","bullet":"Strong action verb bullet."}],"interviewQuestions":[{"q":"Specific technical question from their stack?","topic":"topic","difficulty":"easy","followUp":"Follow-up question?"},{"q":"Medium difficulty question?","topic":"topic","difficulty":"medium","followUp":"Follow-up?"},{"q":"Hard technical question?","topic":"topic","difficulty":"hard","followUp":"Follow-up?"},{"q":"System design question?","topic":"System Design","difficulty":"hard","followUp":"Follow-up?"}],"roadmapSteps":[{"title":"Current strength","desc":"What they already do well.","status":"done"},{"title":"Immediate action","desc":"Concrete step to take now.","status":"current"},{"title":"3-month goal","desc":"Target in 3 months.","status":"todo"},{"title":"6-month target","desc":"Ambitious 6-month target.","status":"todo"},{"title":"1-year vision","desc":"Where great execution leads.","status":"todo"}],"securityChecks":[{"title":"Check name","desc":"Finding and recommendation.","status":"ok"},{"title":"Check name","desc":"Finding.","status":"warn"}],"timelineEvents":[{"year":"2021","text":"Started coding journey."},{"year":"2022","text":"Built first serious project."},{"year":"2023","text":"Expanded tech stack."},{"year":"2024","text":"Current focus area."}],"hiddenGem":"repo-name — why it is impressive despite low stars.","careerPath":"One sentence predicted career arc.","benchmarkPercentile":45,"maturityLevel":"Mid-level","bestRoleFit":"Full-Stack Developer","openSourceRecs":["project one","project two","project three"]}
+
+Now replace ALL placeholder values above with REAL analysis of the profile data provided. Keep the exact same JSON structure and keys.`;
 }

@@ -309,7 +309,7 @@ window.DEVIQ_CONFIG = {
   ANTHROPIC_API_KEY: '',          // Direct browser key (gitignored)
   GITHUB_TOKEN:      '',          // Optional: raises rate limit to 5000/hr
   PROXY_URL:         null,        // 'http://localhost:3001/api/chat' for proxy
-  MODEL:             'claude-sonnet-4-20250514',
+  MODEL:             'claude-sonnet-4-5',
   MAX_TOKENS:        2500,
 };
 ```

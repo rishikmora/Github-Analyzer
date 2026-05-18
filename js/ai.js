@@ -16,7 +16,7 @@
 const MODELS = {
   anthropic: {
     name    : 'Claude Sonnet 4',
-    model   : 'claude-sonnet-4-20250514',
+    model   : 'claude-sonnet-4-5',
     endpoint: 'https://api.anthropic.com/v1/messages',
     keyField: 'ANTHROPIC_API_KEY',
     badge   : '🟣',
@@ -192,7 +192,7 @@ async function callProxy(prompt, maxTokens) {
     method : 'POST',
     headers: { 'Content-Type': 'application/json' },
     body   : JSON.stringify({
-      model     : 'claude-sonnet-4-20250514',
+      model     : 'claude-sonnet-4-5',
       max_tokens: maxTokens,
       messages  : [{ role: 'user', content: prompt }],
     }),
@@ -225,7 +225,7 @@ const CALLER_MAP = {
  * @param {number} maxTokens  - Max tokens to generate (default 2000)
  * @returns {Promise<{text: string, provider: string, model: string}>}
  */
-async function callAI(prompt, taskType = 'general', maxTokens = 2000) {
+async function callAI(prompt, taskType = 'general', maxTokens = 4000) {
   const cfg       = window.DEVIQ_CONFIG || {};
   const available = availableProviders();
 
