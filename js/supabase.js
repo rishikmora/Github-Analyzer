@@ -1,114 +1,158 @@
 /**
  * DevIQ — js/supabase.js
- * Saves every analysis result to Supabase deviq_analyses table.
- * Uses the Supabase REST API directly — no SDK needed.
+ * Saves every analysis to Supabase deviq_analyses table.
+ * Uses Supabase REST API directly — no SDK needed.
  */
 
 'use strict';
 
-const SUPABASE_URL     = 'https://ddfuezctljrcbauiizlb.supabase.co';
+const SUPABASE_URL      = 'https://ddfuezctljrcbauiizlb.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRkZnVlemN0bGpyY2JhdWlpemxiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg5OTc2NDAsImV4cCI6MjA5NDU3MzY0MH0.ZKJIYu3Qz86p2hW8XclpRZROF8pmY1LiSIEJYt2x6nw';
 
-/**
- * Save a completed DevIQ analysis to Supabase.
- * Maps every field from the analysis output into the table.
- *
- * @param {Object} user       - GitHub user object
- * @param {Array}  repos      - Non-forked repos array
- * @param {Array}  langs      - Detected languages [{lang, count}]
- * @param {Array}  archs      - Detected architecture patterns
- * @param {Object} analysis   - Full AI analysis JSON
- * @param {Object} aiResult   - {provider, model} from callAI
- * @param {string} mode       - Recruiter mode
- * @returns {Promise<{id: string}|null>}
- */
+/* ── Helpers ───────────────────────────────────────────────── */
+
+// Safely clamp a number between 0-100, return null if invalid
+function safeScore(val) {
+  const n = parseInt(val, 10);
+  if (isNaN(n)) return null;
+  return Math.max(0, Math.min(100, n));
+}
+
+// Return string or null — never undefined
+function safeStr(val) {
+  if (val === null || val === undefined || val === '') return null;
+  return String(val).slice(0, 2000); // cap length for safety
+}
+
+// Return array of strings or empty array
+function safeArr(val) {
+  if (!Array.isArray(val)) return [];
+  return val.filter(Boolean).map(String);
+}
+
+// Normalize production_readiness to exact DB values
+function normalizeReadiness(val) {
+  if (!val) return null;
+  const v = String(val).toLowerCase().replace(/[-_]/g, ' ').trim();
+  if (v.includes('enterprise')) return 'Enterprise-grade';
+  if (v.includes('production'))  return 'Production-grade';
+  if (v.includes('portfolio'))   return 'Portfolio-level';
+  if (v.includes('beginner'))    return 'Beginner';
+  return null; // unknown value — store null rather than fail
+}
+
+// Normalize maturity level
+function normalizeMaturity(val) {
+  if (!val) return null;
+  const v = String(val).toLowerCase().trim();
+  if (v.includes('principal')) return 'Principal';
+  if (v.includes('staff'))     return 'Staff';
+  if (v.includes('senior'))    return 'Senior';
+  if (v.includes('mid'))       return 'Mid-level';
+  if (v.includes('junior'))    return 'Junior';
+  return null;
+}
+
+// Normalize recruiter mode
+function normalizeMode(val) {
+  const valid = ['faang', 'startup', 'opensource', 'ml'];
+  const v = String(val || '').toLowerCase().trim();
+  return valid.includes(v) ? v : 'faang';
+}
+
+/* ── Main save function ────────────────────────────────────── */
+
 async function saveAnalysisToSupabase(user, repos, langs, archs, analysis, aiResult, mode) {
   try {
-    const totalStars = repos.reduce((s, r) => s + r.stargazers_count, 0);
+    const totalStars = repos.reduce((s, r) => s + (r.stargazers_count || 0), 0);
     const enrichment = analysis._enrichment || {};
+    const a          = analysis;
 
+    // Build the row — every value sanitized
     const row = {
 
-      // ── GitHub Profile ──────────────────────────────────────
-      github_username      : user.login,
-      github_name          : user.name          || null,
-      github_bio           : user.bio           || null,
-      github_location      : user.location      || null,
-      github_company       : user.company       || null,
-      github_avatar_url    : user.avatar_url    || null,
-      github_followers     : user.followers     || 0,
-      github_following     : user.following     || 0,
-      github_public_repos  : user.public_repos  || 0,
+      // GitHub Profile
+      github_username      : safeStr(user.login),
+      github_name          : safeStr(user.name),
+      github_bio           : safeStr(user.bio),
+      github_location      : safeStr(user.location),
+      github_company       : safeStr(user.company),
+      github_avatar_url    : safeStr(user.avatar_url),
+      github_followers     : parseInt(user.followers)    || 0,
+      github_following     : parseInt(user.following)    || 0,
+      github_public_repos  : parseInt(user.public_repos) || 0,
       github_total_stars   : totalStars,
-      github_account_created: user.created_at   || null,
+      github_account_created: user.created_at || null,
 
-      // ── Analysis Config ─────────────────────────────────────
-      recruiter_mode   : mode                   || 'faang',
-      ai_provider_used : aiResult?.provider     || null,
-      ai_model_used    : aiResult?.model        || null,
+      // Analysis Config
+      recruiter_mode   : normalizeMode(mode),
+      ai_provider_used : safeStr(aiResult?.provider),
+      ai_model_used    : safeStr(aiResult?.model),
 
-      // ── Core Scores ─────────────────────────────────────────
-      engineering_iq       : analysis.engineeringIQ       || null,
-      iq_grade             : analysis.iqGrade             || null,
-      overall_score        : analysis.overallScore        || null,
-      production_readiness : analysis.productionReadiness || null,
-      maturity_level       : analysis.maturityLevel       || null,
-      benchmark_percentile : analysis.benchmarkPercentile || null,
-      best_role_fit        : analysis.bestRoleFit         || null,
+      // Core Scores
+      engineering_iq       : safeScore(a.engineeringIQ),
+      iq_grade             : safeStr(a.iqGrade),
+      overall_score        : safeScore(a.overallScore),
+      production_readiness : normalizeReadiness(a.productionReadiness),
+      maturity_level       : normalizeMaturity(a.maturityLevel),
+      benchmark_percentile : safeScore(a.benchmarkPercentile),
+      best_role_fit        : safeStr(a.bestRoleFit),
 
-      // ── Dimension Scores ────────────────────────────────────
-      score_architecture  : analysis.architectureScore  || null,
-      score_code_quality  : analysis.codeQualityScore   || null,
-      score_deployment    : analysis.deploymentScore    || null,
-      score_community     : analysis.communityScore     || null,
-      score_documentation : analysis.documentationScore || null,
-      score_ai_readiness  : analysis.aiReadinessScore   || null,
+      // Dimension Scores
+      score_architecture  : safeScore(a.architectureScore),
+      score_code_quality  : safeScore(a.codeQualityScore),
+      score_deployment    : safeScore(a.deploymentScore),
+      score_community     : safeScore(a.communityScore),
+      score_documentation : safeScore(a.documentationScore),
+      score_ai_readiness  : safeScore(a.aiReadinessScore),
 
-      // ── Agent Scores ────────────────────────────────────────
-      agent_score_recruiter         : analysis.agents?.recruiter?.score          || null,
-      agent_score_architect         : analysis.agents?.architect?.score          || null,
-      agent_score_code_reviewer     : analysis.agents?.codeReviewer?.score       || null,
-      agent_score_security_reviewer : analysis.agents?.securityReviewer?.score   || null,
-      agent_score_career_mentor     : analysis.agents?.careerMentor?.score       || null,
-      agent_score_docs_reviewer     : analysis.agents?.docsReviewer?.score       || null,
-      agent_score_scalability       : analysis.agents?.scalabilityAnalyst?.score || null,
+      // Agent Scores
+      agent_score_recruiter         : safeScore(a.agents?.recruiter?.score),
+      agent_score_architect         : safeScore(a.agents?.architect?.score),
+      agent_score_code_reviewer     : safeScore(a.agents?.codeReviewer?.score),
+      agent_score_security_reviewer : safeScore(a.agents?.securityReviewer?.score),
+      agent_score_career_mentor     : safeScore(a.agents?.careerMentor?.score),
+      agent_score_docs_reviewer     : safeScore(a.agents?.docsReviewer?.score),
+      agent_score_scalability       : safeScore(a.agents?.scalabilityAnalyst?.score),
 
-      // ── Detected Tech & Patterns ────────────────────────────
-      top_technologies     : analysis.topTechs            || [],
-      architecture_patterns: archs                        || [],
-      top_languages        : langs.map(l => l.lang)       || [],
+      // Tech & Patterns
+      top_technologies      : safeArr(a.topTechs),
+      architecture_patterns : safeArr(archs),
+      top_languages         : safeArr(langs.map(l => l.lang)),
 
-      // ── Personality ─────────────────────────────────────────
-      personality_type  : analysis.personalityType  || null,
-      personality_glyph : analysis.personalityGlyph || null,
-      personality_desc  : analysis.personalityDesc  || null,
+      // Personality
+      personality_type  : safeStr(a.personalityType),
+      personality_glyph : safeStr(a.personalityGlyph),
+      personality_desc  : safeStr(a.personalityDesc),
 
-      // ── Career ──────────────────────────────────────────────
-      career_path      : analysis.careerPath      || null,
-      hidden_gem_repo  : analysis.hiddenGem       || null,
-      open_source_recs : analysis.openSourceRecs  || [],
+      // Career
+      career_path      : safeStr(a.careerPath),
+      hidden_gem_repo  : safeStr(a.hiddenGem),
+      open_source_recs : safeArr(a.openSourceRecs),
 
-      // ── Enrichment ──────────────────────────────────────────
-      npm_packages_count   : enrichment.npm?.count              || 0,
-      npm_total_downloads  : enrichment.npm?.totalDownloads     || 0,
-      npm_package_names    : enrichment.npm?.packages?.map(p => p.name) || [],
-      github_total_commits : enrichment.graphql?.totalCommits   || 0,
-      github_total_prs     : enrichment.graphql?.totalPRs       || 0,
-      github_streak_current: enrichment.graphql?.currentStreak  || 0,
-      github_streak_longest: enrichment.graphql?.longestStreak  || 0,
-      wakatime_hours_week  : enrichment.wakatime?.totalHours    || 0,
-      is_github_sponsored  : enrichment.graphql?.isSponsored    || false,
+      // Enrichment
+      npm_packages_count    : parseInt(enrichment.npm?.count)              || 0,
+      npm_total_downloads   : parseInt(enrichment.npm?.totalDownloads)     || 0,
+      npm_package_names     : safeArr(enrichment.npm?.packages?.map(p => p.name)),
+      github_total_commits  : parseInt(enrichment.graphql?.totalCommits)   || 0,
+      github_total_prs      : parseInt(enrichment.graphql?.totalPRs)       || 0,
+      github_streak_current : parseInt(enrichment.graphql?.currentStreak)  || 0,
+      github_streak_longest : parseInt(enrichment.graphql?.longestStreak)  || 0,
+      wakatime_hours_week   : parseFloat(enrichment.wakatime?.totalHours)  || 0,
+      is_github_sponsored   : Boolean(enrichment.graphql?.isSponsored),
 
-      // ── Full JSON Blobs ─────────────────────────────────────
-      full_analysis_json       : analysis,
-      agent_verdicts_json      : analysis.agents             || null,
-      resume_bullets_json      : analysis.resumeBullets      || null,
-      interview_questions_json : analysis.interviewQuestions || null,
-      roadmap_steps_json       : analysis.roadmapSteps       || null,
-      security_checks_json     : analysis.securityChecks     || null,
-      timeline_events_json     : analysis.timelineEvents     || null,
-      enrichment_json          : enrichment._hasData ? enrichment : null,
+      // Full JSON blobs — strip _enrichment to avoid circular issues
+      full_analysis_json       : stripMeta(a),
+      agent_verdicts_json      : a.agents             || null,
+      resume_bullets_json      : a.resumeBullets      || null,
+      interview_questions_json : a.interviewQuestions || null,
+      roadmap_steps_json       : a.roadmapSteps       || null,
+      security_checks_json     : a.securityChecks     || null,
+      timeline_events_json     : a.timelineEvents     || null,
+      enrichment_json          : enrichment._hasData ? stripMeta(enrichment) : null,
     };
+
+    console.log('[DevIQ Supabase] Saving row for:', row.github_username);
 
     const res = await fetch(`${SUPABASE_URL}/rest/v1/deviq_analyses`, {
       method : 'POST',
@@ -121,73 +165,65 @@ async function saveAnalysisToSupabase(user, repos, langs, archs, analysis, aiRes
       body: JSON.stringify(row),
     });
 
+    // Always read the response body for debugging
+    const responseText = await res.text();
+
     if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      console.error('[DevIQ Supabase] Save failed:', err);
+      console.error('[DevIQ Supabase] HTTP', res.status, '—', responseText);
+      // Show the actual error in UI so user knows what happened
+      showToast(`⚠ DB save failed: ${res.status} — check console (F12)`);
       return null;
     }
 
-    const saved = await res.json();
-    const id = saved?.[0]?.id || saved?.id || null;
-    console.log('[DevIQ Supabase] Saved analysis:', id);
+    let saved;
+    try { saved = JSON.parse(responseText); } catch { saved = []; }
+
+    const id = Array.isArray(saved) ? saved[0]?.id : saved?.id;
+    console.log('[DevIQ Supabase] ✓ Saved. Row ID:', id);
     return { id };
 
   } catch (err) {
-    // Non-fatal — saving to DB should never break the UI
-    console.error('[DevIQ Supabase] Error:', err.message);
+    console.error('[DevIQ Supabase] Exception:', err.message, err);
+    showToast('⚠ DB save error — check console (F12)');
     return null;
   }
 }
 
-/**
- * Fetch the last N analyses for a GitHub username.
- * Useful for showing history or "you've been analyzed X times".
- * @param {string} username
- * @param {number} limit
- */
+// Remove internal meta keys before storing JSON
+function stripMeta(obj) {
+  if (!obj || typeof obj !== 'object') return obj;
+  const clean = { ...obj };
+  delete clean._enrichment;
+  delete clean._sources;
+  delete clean._hasData;
+  return clean;
+}
+
+/* ── History & Leaderboard ─────────────────────────────────── */
+
 async function getAnalysisHistory(username, limit = 5) {
   try {
     const url = `${SUPABASE_URL}/rest/v1/deviq_analyses`
       + `?github_username=eq.${encodeURIComponent(username)}`
       + `&order=created_at.desc`
       + `&limit=${limit}`
-      + `&select=id,created_at,overall_score,engineering_iq,recruiter_mode,production_readiness,ai_provider_used`;
-
+      + `&select=id,created_at,overall_score,engineering_iq,recruiter_mode,production_readiness`;
     const res = await fetch(url, {
-      headers: {
-        'apikey'       : SUPABASE_ANON_KEY,
-        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-      },
+      headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` },
     });
-
-    if (!res.ok) return [];
-    return await res.json();
-  } catch {
-    return [];
-  }
+    return res.ok ? await res.json() : [];
+  } catch { return []; }
 }
 
-/**
- * Fetch global leaderboard — top N profiles by overall_score.
- * @param {number} limit
- */
 async function getLeaderboard(limit = 10) {
   try {
     const url = `${SUPABASE_URL}/rest/v1/deviq_analyses`
       + `?order=overall_score.desc`
       + `&limit=${limit}`
       + `&select=github_username,github_name,github_avatar_url,overall_score,engineering_iq,maturity_level,top_technologies,created_at`;
-
     const res = await fetch(url, {
-      headers: {
-        'apikey'       : SUPABASE_ANON_KEY,
-        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-      },
+      headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` },
     });
-
-    if (!res.ok) return [];
-    return await res.json();
-  } catch {
-    return [];
-  }
+    return res.ok ? await res.json() : [];
+  } catch { return []; }
 }
